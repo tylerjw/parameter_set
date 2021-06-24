@@ -12,10 +12,13 @@ set(PRIVATE_COMPILE_OPTIONS -Wall -Wextra -Wpedantic)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
+find_package(rcl REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
+  sensor_msgs
 )
 
 add_library(${PROJECT_NAME}
@@ -31,7 +34,8 @@ ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(example_node
   src/example_node/main.cpp
-  src/example_node/parameters.cpp
+  src/example_node/robot_parameters.cpp
+  src/example_node/robot_subsystem.cpp
 )
 ament_target_dependencies(example_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_link_libraries(example_node ${PROJECT_NAME})

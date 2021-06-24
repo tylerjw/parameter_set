@@ -28,26 +28,41 @@
 
 #pragma once
 
-#include <rclcpp/rclcpp.hpp>
 #include <functional>
+#include <rclcpp/rclcpp.hpp>
 
 namespace node_parameters {
 
 /**
  * @breif Function interface for parameter validation
  */
-using ValidateFunction = std::function<rcl_interfaces::msg::SetParametersResult(const rclcpp::Parameter&)>;
+using ValidateFunction = std::function<rcl_interfaces::msg::SetParametersResult(
+    const rclcpp::Parameter&)>;
 
 /**
  * @brief Parameter is not dynamic
- * @return results is always false
+ *
+ * @return     results is always false
  */
-rcl_interfaces::msg::SetParametersResult always_reject(const rclcpp::Parameter& /*unused*/);
+rcl_interfaces::msg::SetParametersResult always_reject(
+    const rclcpp::Parameter& /*unused*/);
 
 /**
  * @brief Parameter is dynamic
- * @return results is always true
+ *
+ * @return     results is always true
  */
-rcl_interfaces::msg::SetParametersResult always_accept(const rclcpp::Parameter& /*unused*/);
+rcl_interfaces::msg::SetParametersResult always_accept(
+    const rclcpp::Parameter& /*unused*/);
+
+/**
+ * @brief      Validate a ROS topic name
+ *
+ * @param[in]  parameter The parameter
+ *
+ * @return     Success or Failure with reason
+ */
+rcl_interfaces::msg::SetParametersResult validate_topic_name(
+    const rclcpp::Parameter& parameter);
 
 }  // namespace node_parameters

@@ -9,7 +9,9 @@
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
+  <build_depend>rcl</build_depend>
   <build_depend>rclcpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
 
   <test_depend>ament_cmake_cppcheck</test_depend>
   <test_depend>ament_cmake_lint_cmake</test_depend>

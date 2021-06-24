@@ -28,10 +28,11 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include "parameters.hpp"
+#include "robot_parameters.hpp"
+#include "robot_subsystem.hpp"
 
-using example::PlanningParameters;
 using example::RobotParameters;
+using example::RobotSubsystem;
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
@@ -39,23 +40,21 @@ int main(int argc, char** argv) {
   node_options.use_intra_process_comms(true);
   auto node = std::make_shared<rclcpp::Node>("example_node", node_options);
   auto executor = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
-  executor->add_node(node);
-  executor->spin();
 
   // Declare and get parameters for the node
   node_parameters::NodeParameters node_parameters(node);
   auto robot_parameters =
       node_parameters.declare_and_get<RobotParameters>("robot");
-  auto planning_parameters =
-      node_parameters.declare_and_get<PlanningParameters>("planning");
 
-  // ... some point in the future we need to update these
-  //     because we were notified they were changed
-  robot_parameters =
-      node_parameters.get<RobotParameters>(robot_parameters.getNamespace());
-  planning_parameters = node_parameters.get<PlanningParameters>(
-      planning_parameters.getNamespace());
+  // Create robot subsystem and register callback for dynamic parameters
+  RobotSubsystem robot_subsystem(node, robot_parameters);
+  node_parameters.registerSetChangedCallback("robot", [&]() {
+    robot_subsystem.updateParameters(
+        node_parameters.get<RobotParameters>(robot_parameters.getNamespace()));
+  });
 
+  executor->add_node(node);
+  executor->spin();
   rclcpp::shutdown();
   return 0;
 }

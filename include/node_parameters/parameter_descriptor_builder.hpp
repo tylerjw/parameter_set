@@ -40,20 +40,82 @@ class ParameterDescriptorBuilder {
   rcl_interfaces::msg::ParameterDescriptor msg_;
 
  public:
+  /**
+   * @brief      Rcl_interfaces::msg::parameterdescriptor conversion operator.
+   */
   operator rcl_interfaces::msg::ParameterDescriptor() const {
     return move(msg_);
   }
 
+  /**
+   * @brief      Set the type
+   *
+   * @param[in]  type  The type
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& type(uint8_t type);
+
+  /**
+   * @brief      Set the description string
+   *
+   * @param[in]  description  The description
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& description(std::string description);
+
+  /**
+   * @brief      Set the aditional constraints string
+   *
+   * @param[in]  additional_constraints  The additional constraints
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& additional_constraints(
       std::string additional_constraints);
+
+  /**
+   * @brief      Sets the read only flag
+   *
+   * @param[in]  read_only  The read only flag
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& read_only(bool read_only);
   // Rolling only
+
+  /**
+   * @brief      Set the dynamic typing flag (rolling only)
+   *
+   * @param[in]  dynamic_typing  The dynamic typing flag
+   *
+   * @return     Reference to this object
+   */
   // ParameterDescriptorBuilder& dynamic_typing(bool dynamic_typing);
+
+  /**
+   * @brief      Set floating point range
+   *
+   * @param[in]  from_value  The from value
+   * @param[in]  to_value    To value
+   * @param[in]  step        The step
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& floating_point_range(
       double from_value = std::numeric_limits<double>::min(),
       double to_value = std::numeric_limits<double>::max(), double step = 0);
+
+  /**
+   * @brief      Set the integer range
+   *
+   * @param[in]  from_value  The from value
+   * @param[in]  to_value    To value
+   * @param[in]  step        The step
+   *
+   * @return     Reference to this object
+   */
   ParameterDescriptorBuilder& integer_range(
       int64_t from_value = std::numeric_limits<int64_t>::min(),
       int64_t to_value = std::numeric_limits<int64_t>::max(), int64_t step = 0);

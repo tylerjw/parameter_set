@@ -26,40 +26,59 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <rcl/validate_topic_name.h>
+#pragma once
 
-#include <node_parameters/set_parameters_result_builder.hpp>
-#include <node_parameters/validate_parameter.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <string>
 
-namespace node_parameters {
+#include "robot_parameters.hpp"
 
-rcl_interfaces::msg::SetParametersResult always_reject(
-    const rclcpp::Parameter& /*unused*/) {
-  return SetParametersResultBuilder(false);
-}
+namespace example {
 
-rcl_interfaces::msg::SetParametersResult always_accept(
-    const rclcpp::Parameter& /*unused*/) {
-  return SetParametersResultBuilder(true);
-}
+class RobotSubsystem {
+ public:
+  /**
+   * @brief      Example Subsystem with subscriber
+   *
+   * @param[in]  node              The node
+   * @param[in]  robot_parameters  The robot parameters
+   */
+  RobotSubsystem(const std::shared_ptr<rclcpp::Node> node,
+                 const RobotParameters& robot_parameters);
 
-rcl_interfaces::msg::SetParametersResult validate_topic_name(
-    const rclcpp::Parameter& parameter) {
-  int validation_result;
-  size_t invalid_index;
-  rcl_ret_t ret = rcl_validate_topic_name(parameter.as_string().c_str(),
-                                          &validation_result, &invalid_index);
+  /**
+   * @brief      used by dynamic parameters system to update parameters
+   *
+   * @param[in]  robot_parameters  The robot parameters
+   */
+  void updateParameters(const RobotParameters& robot_parameters);
 
-  if (ret != RCL_RET_OK) {
-    rclcpp::exceptions::throw_from_rcl_error(ret);
-  }
+  /**
+   * @brief      Gets the robot description.
+   *
+   * @return     The robot description.
+   */
+  std::string getRobotDescription() const;
 
-  if (validation_result != RCL_TOPIC_NAME_VALID) {
-    return SetParametersResultBuilder(false).reason(
-        rcl_topic_name_validation_result_string(validation_result));
-  }
+ private:
+  const std::shared_ptr<rclcpp::Node> node_;
 
-  return SetParametersResultBuilder(true);
-}
+  // Mutex is needed for syncornized access to RobotParamers because it can be
+  // dynamically updated
+  mutable std::mutex robot_parameters_mutex_;
+  RobotParameters robot_parameters_;
 
-}  // namespace node_parameters
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr
+      joint_state_sub_;
+
+  // Used by constructor and dynamic parameter setting to initialize the ros
+  // interfaces when they change
+  void initializeRosInterfaces();
+
+  // Joint state callback
+  void jointStateCallback(
+      const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
+};
+
+}  // namespace example

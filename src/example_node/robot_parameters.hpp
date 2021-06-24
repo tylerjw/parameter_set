@@ -26,40 +26,43 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <rcl/validate_topic_name.h>
+#pragma once
 
-#include <node_parameters/set_parameters_result_builder.hpp>
-#include <node_parameters/validate_parameter.hpp>
+#include <node_parameters/node_parameters.hpp>
+#include <string>
+#include <vector>
 
-namespace node_parameters {
+using node_parameters::ParameterSet;
 
-rcl_interfaces::msg::SetParametersResult always_reject(
-    const rclcpp::Parameter& /*unused*/) {
-  return SetParametersResultBuilder(false);
-}
+namespace example {
 
-rcl_interfaces::msg::SetParametersResult always_accept(
-    const rclcpp::Parameter& /*unused*/) {
-  return SetParametersResultBuilder(true);
-}
+struct RobotParameters : public ParameterSet {
+ public:
+  using ParameterSet::ParameterSet;
 
-rcl_interfaces::msg::SetParametersResult validate_topic_name(
-    const rclcpp::Parameter& parameter) {
-  int validation_result;
-  size_t invalid_index;
-  rcl_ret_t ret = rcl_validate_topic_name(parameter.as_string().c_str(),
-                                          &validation_result, &invalid_index);
+  // parameters with default values
+  std::string robot_description = "invalid";
+  std::string joint_state_topic = "/joint_states";
 
-  if (ret != RCL_RET_OK) {
-    rclcpp::exceptions::throw_from_rcl_error(ret);
-  }
+  /**
+   * @brief      Declare the robot parameters, called by NodeParameters
+   *
+   * @param      node_parameters  The node parameters pointer
+   * @param[in]  node             The node
+   *
+   * @return     true on success
+   */
+  bool declare(node_parameters::NodeParameters* node_parameters,
+               std::shared_ptr<rclcpp::Node> node) override;
 
-  if (validation_result != RCL_TOPIC_NAME_VALID) {
-    return SetParametersResultBuilder(false).reason(
-        rcl_topic_name_validation_result_string(validation_result));
-  }
+  /**
+   * @brief      Get the parameters, called by NodeParameters
+   *
+   * @param[in]  node  The node
+   *
+   * @return     true on success
+   */
+  bool get(std::shared_ptr<rclcpp::Node> node) override;
+};
 
-  return SetParametersResultBuilder(true);
-}
-
-}  // namespace node_parameters
+}  // namespace example

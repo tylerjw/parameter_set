@@ -26,40 +26,41 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <node_parameters/node_parameters.hpp>
-#include <string>
-#include <vector>
-
-using node_parameters::ParameterSet;
+#include "robot_subsystem.hpp"
 
 namespace example {
 
-class RobotParameters : public ParameterSet {
- public:
-  using ParameterSet::ParameterSet;
+RobotSubsystem::RobotSubsystem(const std::shared_ptr<rclcpp::Node> node,
+                               const RobotParameters& robot_parameters)
+    : node_{node}, robot_parameters_{robot_parameters} {
+  initializeRosInterfaces();
+}
 
-  // parameters with default values
-  std::string robot_description = "robot_description";
-  std::string joint_state_topic = "/joint_states";
+void RobotSubsystem::updateParameters(const RobotParameters& robot_parameters) {
+  {
+    std::lock_guard<std::mutex> lock(robot_parameters_mutex_);
+    robot_parameters_ = robot_parameters;
+  }
 
-  bool declare(node_parameters::NodeParameters* node_parameters,
-               std::shared_ptr<rclcpp::Node> node) override;
-  bool get(std::shared_ptr<rclcpp::Node> node) override;
-};
+  initializeRosInterfaces();
+}
 
-class PlanningParameters : public ParameterSet {
- public:
-  using ParameterSet::ParameterSet;
+void RobotSubsystem::initializeRosInterfaces() {
+  std::lock_guard<std::mutex> lock(robot_parameters_mutex_);
+  joint_state_sub_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+      robot_parameters_.joint_state_topic, 25,
+      std::bind(&RobotSubsystem::jointStateCallback, this,
+                std::placeholders::_1));
+}
 
-  // parameters with default values
-  std::vector<std::string> pipeline_names = {"ompl"};
-  int64_t planning_attempts = 10;
-  double max_velocity_scaling_factor = 1.0;
-  double max_acceleration_scaling_factor = 1.0;
+void RobotSubsystem::jointStateCallback(
+    const sensor_msgs::msg::JointState::ConstSharedPtr joint_state) {
+  // do something with the joint state
+}
 
-  bool declare(node_parameters::NodeParameters* node_parameters,
-               std::shared_ptr<rclcpp::Node> node) override;
-  bool get(std::shared_ptr<rclcpp::Node> node) override;
-};
+std::string RobotSubsystem::getRobotDescription() const {
+  std::lock_guard<std::mutex> lock(robot_parameters_mutex_);
+  return robot_parameters_.robot_description;
+}
 
 }  // namespace example

@@ -37,10 +37,27 @@ class SetParametersResultBuilder {
   rcl_interfaces::msg::SetParametersResult msg_;
 
  public:
+  /**
+   * @brief      Constructs a SetParametersResultBuilder
+   *
+   * @param[in]  successful  The successful flag
+   */
   SetParametersResultBuilder(bool successful) { msg_.successful = successful; }
 
-  operator rcl_interfaces::msg::SetParametersResult() const { return move(msg_); }
+  /**
+   * @brief      Rcl_interfaces::msg::setparametersresult conversion operator.
+   */
+  operator rcl_interfaces::msg::SetParametersResult() const {
+    return move(msg_);
+  }
 
+  /**
+   * @brief      Set the reason string
+   *
+   * @param[in]  reason  The reason
+   *
+   * @return     Reference to this object
+   */
   SetParametersResultBuilder& reason(std::string reason) {
     msg_.reason = reason;
     return *this;
