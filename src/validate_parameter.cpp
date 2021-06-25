@@ -30,7 +30,7 @@
 
 #include <node_parameters/set_parameters_result_builder.hpp>
 #include <node_parameters/validate_parameter.hpp>
-#include <stringstream>
+#include <sstream>
 
 namespace node_parameters {
 namespace validate {
@@ -78,11 +78,12 @@ rcl_interfaces::msg::SetParametersResult in_string_set(
     const rclcpp::Parameter& parameter, std::set<std::string> values) {
   if (values.find(parameter.as_string()) == values.end()) {
     std::stringstream ss;
-    ss << "Must one of [" for (const auto& value : values) {
+    ss << "Must one of [";
+    for (const auto& value : values) {
       ss << value << ", ";
     }
     ss << "]";
-    return SetParametersResultBuilder(false).result(ss.str());
+    return SetParametersResultBuilder(false).reason(ss.str());
   }
   return SetParametersResultBuilder(true);
 }

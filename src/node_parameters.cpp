@@ -72,8 +72,6 @@ rcl_interfaces::msg::SetParametersResult NodeParameters::setParametersCallback(
     // Get the set namespaces that have a parameter change
     auto split_name = split_parameter_name(parameter.get_name());
     changed_set_namespaces.insert(split_name.first);
-
-    RCLCPP_INFO_STREAM(node_->get_logger(), "parameter: " << parameter);
   }
 
   // Populate the callbacks we are going to call on another thread
