@@ -36,17 +36,17 @@
 #include <string>
 #include <type_traits>
 
-#include "node_parameters/parameter_descriptor_builder.hpp"
-#include "node_parameters/set_parameters_result_builder.hpp"
-#include "node_parameters/validate_parameter.hpp"
+#include "parameter_set/parameter_descriptor_builder.hpp"
+#include "parameter_set/set_parameters_result_builder.hpp"
+#include "parameter_set/validate_parameter.hpp"
 
-namespace node_parameters {
+namespace parameter_set {
 
+using rclcpp::node_interfaces::NodeParametersInterface;
 using validate::ValidateFunction;
-class NodeParameters;
+class ParameterSetFactory;
 
 struct ParameterSet {
- public:
   /**
    * @brief      Interface for sets of parameters
    * @details    See example for how to create your own ParameterSets
@@ -61,26 +61,29 @@ struct ParameterSet {
   virtual ~ParameterSet() = default;
 
   /**
-   * @brief      Interface for declaring parameters called by NodeParameters
+   * @brief      Interface for declaring parameters called by
+   * ParameterSetFactory
    *
-   * @param[in]   node_parameters   Pointer to NodeParameters object for calling
-   * registerValidateFunction
+   * @param[in]   parameter_set_factory   Pointer to ParameterSetFactory object
+   * for calling registerValidateFunction
    * @param[in]   node              Node for calling ros interfaces for
    * declaring parameters
    * @return     true on success
    */
-  virtual bool declare(NodeParameters* node_parameters,
-                       std::shared_ptr<rclcpp::Node> node) = 0;
+  virtual bool declare(
+      ParameterSetFactory* parameter_set_factory,
+      const NodeParametersInterface::SharedPtr& node_parameters) = 0;
 
   /**
    * @brief      Interface for getting parameters in the set called by
-   * NodeParameters
+   * ParameterSetFactory
    *
    * @param[in]  node  The node
    *
    * @return     true on success
    */
-  virtual bool get(std::shared_ptr<rclcpp::Node> node) = 0;
+  virtual bool get(
+      const NodeParametersInterface::SharedPtr& node_parameters) = 0;
 
   /**
    * @brief      Gets the namespace.
@@ -94,19 +97,20 @@ struct ParameterSet {
   std::string ns_;
 };
 
-class NodeParameters {
+class ParameterSetFactory {
  public:
   /**
    * @brief      Class for interfacing with ROS2 parameters
    *
    * @param[in]  node  The node
    */
-  NodeParameters(std::shared_ptr<rclcpp::Node> node);
+  ParameterSetFactory(
+      const NodeParametersInterface::SharedPtr& node_parameters);
 
   /**
    * @brief      Destroys the object.
    */
-  ~NodeParameters();
+  ~ParameterSetFactory();
 
   /**
    * @brief      Declare ParameterSet
@@ -167,7 +171,7 @@ class NodeParameters {
                                   std::function<void()> callback);
 
  private:
-  const std::shared_ptr<rclcpp::Node> node_;
+  const NodeParametersInterface::SharedPtr node_parameters_;
 
   // sycronized access to internal state below
   mutable std::recursive_mutex mutex_;
@@ -204,37 +208,46 @@ class NodeParameters {
 };
 
 template <typename T>
-bool NodeParameters::declare(const std::string ns) {
+bool ParameterSetFactory::declare(const std::string ns) {
   static_assert(std::is_base_of<ParameterSet, T>::value,
                 "T must inherit from ParameterSet");
 
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  // TODO handle parameter set already in map
+  // Insert new ParameterSet into the map
   parameter_sets_[ns] = std::make_unique<T>(ns);
 
-  // TODO handle parameter set is already declared
-  return parameter_sets_[ns]->declare(this, node_);
+  // Declare the parameters in that set
+  if (!parameter_sets_.at(ns)->declare(this, node_parameters_)) {
+    RCLCPP_WARN(rclcpp::get_logger("parameter_set.parameter_set_factory"),
+                "Error when declaring parameter set: " + ns);
+  }
+
+  return true;
 }
 
 template <typename T>
-const T NodeParameters::get(const std::string ns) {
+const T ParameterSetFactory::get(const std::string ns) {
   static_assert(std::is_base_of<ParameterSet, T>::value,
                 "T must inherit from ParameterSet");
 
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  auto& parameter_set = parameter_sets_[ns];
+  // Get the parameter set asked for.
+  auto& parameter_set = parameter_sets_.at(ns);
 
-  // TODO handle parameter set is not in map
-  parameter_set->get(node_);
+  // Get the updated parameter values
+  if (!parameter_set->get(node_parameters_)) {
+    RCLCPP_WARN(rclcpp::get_logger("parameter_set.parameter_set_factory"),
+                "Error when reading parameter set: " + ns);
+  }
 
   // return a copy of the parameter set we just updated
   return *dynamic_cast<T*>(parameter_set.get());
 }
 
 template <typename T>
-const T NodeParameters::declare_and_get(std::string ns) {
+const T ParameterSetFactory::declare_and_get(std::string ns) {
   static_assert(std::is_base_of<ParameterSet, T>::value,
                 "T must inherit from ParameterSet");
   declare<T>(ns);
@@ -252,4 +265,4 @@ const T NodeParameters::declare_and_get(std::string ns) {
 std::pair<std::string, std::string> split_parameter_name(
     const std::string& full_name);
 
-}  // namespace node_parameters
+}  // namespace parameter_set

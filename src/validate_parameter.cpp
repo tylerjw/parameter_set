@@ -28,11 +28,11 @@
 
 #include <rcl/validate_topic_name.h>
 
-#include <node_parameters/set_parameters_result_builder.hpp>
-#include <node_parameters/validate_parameter.hpp>
+#include <parameter_set/set_parameters_result_builder.hpp>
+#include <parameter_set/validate_parameter.hpp>
 #include <sstream>
 
-namespace node_parameters {
+namespace parameter_set {
 namespace validate {
 
 rcl_interfaces::msg::SetParametersResult always_reject(
@@ -89,4 +89,4 @@ rcl_interfaces::msg::SetParametersResult in_string_set(
 }
 
 }  // namespace validate
-}  // namespace node_parameters
+}  // namespace parameter_set

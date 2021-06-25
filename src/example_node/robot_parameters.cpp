@@ -28,42 +28,47 @@
 
 #include "robot_parameters.hpp"
 
-#include <node_parameters/node_parameters.hpp>
-#include <node_parameters/validate_parameter.hpp>
+#include <parameter_set/parameter_set.hpp>
+#include <parameter_set/validate_parameter.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-using node_parameters::ParameterDescriptorBuilder;
+using parameter_set::ParameterDescriptorBuilder;
 using rcl_interfaces::msg::ParameterType;
+using rclcpp::ParameterValue;
 
 namespace example {
 
-bool RobotParameters::declare(node_parameters::NodeParameters* node_parameters,
-                              std::shared_ptr<rclcpp::Node> node) {
+bool RobotParameters::declare(
+    ParameterSetFactory* parameter_set_factory,
+    const NodeParametersInterface::SharedPtr& node_parameters) {
   auto ns = getNamespace();
-  node->declare_parameter(
-      ns + ".robot_description", robot_description,
+  node_parameters->declare_parameter(
+      ns + ".robot_description", ParameterValue(robot_description),
       ParameterDescriptorBuilder()
           .type(ParameterType::PARAMETER_STRING)
           .description("Parameter containing XML robotic description"));
 
-  node->declare_parameter(
-      ns + ".joint_state_topic", joint_state_topic,
+  node_parameters->declare_parameter(
+      ns + ".joint_state_topic", ParameterValue(joint_state_topic),
       ParameterDescriptorBuilder()
           .type(ParameterType::PARAMETER_STRING)
           .description("Topic to subscribe to for joint states")
           .additional_constraints("Must be a valid topic name"));
-  node_parameters->registerValidateFunction(
-      ns + ".joint_state_topic", &node_parameters::validate::topic_name);
+  parameter_set_factory->registerValidateFunction(
+      ns + ".joint_state_topic", &parameter_set::validate::topic_name);
 
   return true;
 }
 
-bool RobotParameters::get(std::shared_ptr<rclcpp::Node> node) {
+bool RobotParameters::get(
+    const NodeParametersInterface::SharedPtr& node_parameters) {
   auto ns = getNamespace();
-  bool success = true;
-  success &= node->get_parameter(ns + ".robot_description", robot_description);
-  success &= node->get_parameter(ns + ".joint_state_topic", joint_state_topic);
+  robot_description =
+      node_parameters->get_parameter(ns + ".robot_description").as_string();
+  joint_state_topic =
+      node_parameters->get_parameter(ns + ".joint_state_topic").as_string();
 
-  return success;
+  return true;
 }
 
 }  // namespace example

@@ -26,9 +26,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "node_parameters/parameter_descriptor_builder.hpp"
+#include <parameter_set/parameter_descriptor_builder.hpp>
 
-namespace node_parameters {
+namespace parameter_set {
 
 ParameterDescriptorBuilder& ParameterDescriptorBuilder::type(uint8_t type) {
   msg_.type = type;
@@ -83,4 +83,4 @@ ParameterDescriptorBuilder& ParameterDescriptorBuilder::integer_range(
   return *this;
 }
 
-}  // namespace node_parameters
+}  // namespace parameter_set

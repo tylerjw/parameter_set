@@ -34,7 +34,7 @@
 #include <rcl_interfaces/msg/parameter_type.hpp>
 #include <string>
 
-namespace node_parameters {
+namespace parameter_set {
 
 class ParameterDescriptorBuilder {
   rcl_interfaces::msg::ParameterDescriptor msg_;
@@ -121,4 +121,4 @@ class ParameterDescriptorBuilder {
       int64_t to_value = std::numeric_limits<int64_t>::max(), int64_t step = 0);
 };
 
-}  // namespace node_parameters
+}  // namespace parameter_set

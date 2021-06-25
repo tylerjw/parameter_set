@@ -26,6 +26,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <parameter_set/parameter_set.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "robot_parameters.hpp"
@@ -45,16 +46,20 @@ int main(int argc, char** argv) {
   auto robot_subsystem_namespace = "robot1";
 
   // Declare and get parameters for the node
-  node_parameters::NodeParameters node_parameters(node);
-  auto robot_parameters = node_parameters.declare_and_get<RobotParameters>(
-      robot_subsystem_namespace);
+  parameter_set::ParameterSetFactory parameter_set_factory(
+      node->get_node_parameters_interface());
+  auto robot_parameters =
+      parameter_set_factory.declare_and_get<RobotParameters>(
+          robot_subsystem_namespace);
 
   // Create robot subsystem and register callback for dynamic parameters
   RobotSubsystem robot_subsystem(node, robot_parameters);
-  node_parameters.registerSetChangedCallback(robot_subsystem_namespace, [&]() {
-    robot_subsystem.updateParameters(
-        node_parameters.get<RobotParameters>(robot_parameters.getNamespace()));
-  });
+  parameter_set_factory.registerSetChangedCallback(
+      robot_subsystem_namespace, [&]() {
+        robot_subsystem.updateParameters(
+            parameter_set_factory.get<RobotParameters>(
+                robot_parameters.getNamespace()));
+      });
 
   executor->add_node(node);
   executor->spin();

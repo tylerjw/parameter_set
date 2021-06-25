@@ -28,66 +28,40 @@
 
 #pragma once
 
-#include <functional>
-#include <rclcpp/rclcpp.hpp>
-#include <set>
+#include <rcl_interfaces/msg/set_parameters_result.hpp>
 #include <string>
 
-namespace node_parameters {
-namespace validate {
+namespace parameter_set {
 
-/**
- * @breif Function interface for parameter validation
- */
-using ValidateFunction = std::function<rcl_interfaces::msg::SetParametersResult(
-    const rclcpp::Parameter&)>;
+class SetParametersResultBuilder {
+  rcl_interfaces::msg::SetParametersResult msg_;
 
-/**
- * @brief Parameter is not dynamic
- *
- * @return     results is always false
- */
-rcl_interfaces::msg::SetParametersResult always_reject(
-    const rclcpp::Parameter& /*unused*/);
+ public:
+  /**
+   * @brief      Constructs a SetParametersResultBuilder
+   *
+   * @param[in]  successful  The successful flag
+   */
+  SetParametersResultBuilder(bool successful) { msg_.successful = successful; }
 
-/**
- * @brief Parameter is dynamic
- *
- * @return     results is always true
- */
-rcl_interfaces::msg::SetParametersResult always_accept(
-    const rclcpp::Parameter& /*unused*/);
+  /**
+   * @brief      Rcl_interfaces::msg::setparametersresult conversion operator.
+   */
+  operator rcl_interfaces::msg::SetParametersResult() const {
+    return move(msg_);
+  }
 
-/**
- * @brief      Validate a ROS topic name
- *
- * @param[in]  parameter The parameter
- *
- * @return     Success or Failure with reason
- */
-rcl_interfaces::msg::SetParametersResult topic_name(
-    const rclcpp::Parameter& parameter);
+  /**
+   * @brief      Set the reason string
+   *
+   * @param[in]  reason  The reason
+   *
+   * @return     Reference to this object
+   */
+  SetParametersResultBuilder& reason(std::string reason) {
+    msg_.reason = reason;
+    return *this;
+  }
+};
 
-/**
- * @brief      Validate string is not empty
- *
- * @param[in]  parameter  The parameter
- *
- * @return     Success or Failure with reason
- */
-rcl_interfaces::msg::SetParametersResult not_empty_string(
-    const rclcpp::Parameter& parameter);
-
-/**
- * @brief      Validate that string is in set of strings
- *
- * @param[in]  parameter  The parameter
- * @param[in]  values     The set of strings
- *
- * @return     Success or Failure with reason
- */
-rcl_interfaces::msg::SetParametersResult in_string_set(
-    const rclcpp::Parameter& parameter, std::set<std::string> values);
-
-}  // namespace validate
-}  // namespace node_parameters
+}  // namespace parameter_set

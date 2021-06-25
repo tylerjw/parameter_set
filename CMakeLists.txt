@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(node_parameters)
+project(parameter_set)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -22,7 +22,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 )
 
 add_library(${PROJECT_NAME}
-  src/node_parameters.cpp
+  src/parameter_set.cpp
   src/parameter_descriptor_builder.cpp
   src/validate_parameter.cpp
 )
@@ -42,7 +42,7 @@ target_link_libraries(example_node ${PROJECT_NAME})
 
 # Install Libraries
 install(
-  TARGETS node_parameters
+  TARGETS parameter_set
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

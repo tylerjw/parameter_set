@@ -27,36 +27,38 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
-#include <node_parameters/node_parameters.hpp>
+#include <parameter_set/parameter_set.hpp>
 #include <utility>
 
-namespace node_parameters {
+namespace parameter_set {
 
-NodeParameters::NodeParameters(std::shared_ptr<rclcpp::Node> node)
-    : node_(node),
-      on_set_callback_handle_{node->add_on_set_parameters_callback(
-          std::bind(&NodeParameters::setParametersCallback, this,
+ParameterSetFactory::ParameterSetFactory(
+    const NodeParametersInterface::SharedPtr& node_parameters)
+    : node_parameters_(node_parameters),
+      on_set_callback_handle_{node_parameters->add_on_set_parameters_callback(
+          std::bind(&ParameterSetFactory::setParametersCallback, this,
                     std::placeholders::_1))} {}
 
-NodeParameters::~NodeParameters() {
+ParameterSetFactory::~ParameterSetFactory() {
   if (set_changed_callback_thread_.joinable()) {
     set_changed_callback_thread_.join();
   }
 }
 
-void NodeParameters::registerValidateFunction(std::string name,
-                                              ValidateFunction validate) {
+void ParameterSetFactory::registerValidateFunction(std::string name,
+                                                   ValidateFunction validate) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   validate_functions_[name].push_back(validate);
 }
 
-void NodeParameters::registerSetChangedCallback(
+void ParameterSetFactory::registerSetChangedCallback(
     std::string name, std::function<void()> callback) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   set_changed_callbacks_[name] = callback;
 }
 
-rcl_interfaces::msg::SetParametersResult NodeParameters::setParametersCallback(
+rcl_interfaces::msg::SetParametersResult
+ParameterSetFactory::setParametersCallback(
     const std::vector<rclcpp::Parameter>& parameters) {
   const std::lock_guard<std::recursive_mutex> guard(mutex_);
 
@@ -102,7 +104,7 @@ rcl_interfaces::msg::SetParametersResult NodeParameters::setParametersCallback(
   return SetParametersResultBuilder(true);
 }
 
-rcl_interfaces::msg::SetParametersResult NodeParameters::validateParameter(
+rcl_interfaces::msg::SetParametersResult ParameterSetFactory::validateParameter(
     const rclcpp::Parameter& parameter) const {
   const std::lock_guard<std::recursive_mutex> guard(mutex_);
   rcl_interfaces::msg::SetParametersResult result =
@@ -138,4 +140,4 @@ std::pair<std::string, std::string> split_parameter_name(
   }
 }
 
-}  // namespace node_parameters
+}  // namespace parameter_set

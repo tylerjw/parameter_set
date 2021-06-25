@@ -28,16 +28,17 @@
 
 #pragma once
 
-#include <node_parameters/node_parameters.hpp>
+#include <parameter_set/parameter_set.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <string>
-#include <vector>
 
-using node_parameters::ParameterSet;
+using parameter_set::ParameterSet;
+using parameter_set::ParameterSetFactory;
+using rclcpp::node_interfaces::NodeParametersInterface;
 
 namespace example {
 
 struct RobotParameters : public ParameterSet {
- public:
   using ParameterSet::ParameterSet;
 
   // parameters with default values
@@ -47,24 +48,25 @@ struct RobotParameters : public ParameterSet {
       "/joint_states";  // topic for subscribing to joint states
 
   /**
-   * @brief      Declare the robot parameters, called by NodeParameters
+   * @brief      Declare the parameters, called by ParameterSetFactory
    *
-   * @param      node_parameters  The node parameters pointer
-   * @param[in]  node             The node
+   * @param[in]  parameter_set_factory  The parameter set factory pointer
+   * @param[in]  node_parameters        The node parameters interface
    *
    * @return     true on success
    */
-  bool declare(node_parameters::NodeParameters* node_parameters,
-               std::shared_ptr<rclcpp::Node> node) override;
+  bool declare(
+      ParameterSetFactory* parameter_set_factory,
+      const NodeParametersInterface::SharedPtr& node_parameters) override;
 
   /**
-   * @brief      Get the parameters, called by NodeParameters
+   * @brief      Get the parameters, called by ParameterSetFactory
    *
-   * @param[in]  node  The node
+   * @param[in]  node_parameters        The node parameters interface
    *
    * @return     true on success
    */
-  bool get(std::shared_ptr<rclcpp::Node> node) override;
+  bool get(const NodeParametersInterface::SharedPtr& node_parameters) override;
 };
 
 }  // namespace example
