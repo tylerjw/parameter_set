@@ -32,7 +32,6 @@
 #include <node_parameters/validate_parameter.hpp>
 
 using node_parameters::ParameterDescriptorBuilder;
-using node_parameters::SetParametersResultBuilder;
 using rcl_interfaces::msg::ParameterType;
 
 namespace example {
@@ -53,7 +52,7 @@ bool RobotParameters::declare(node_parameters::NodeParameters* node_parameters,
           .description("Topic to subscribe to for joint states")
           .additional_constraints("Must be a valid topic name"));
   node_parameters->registerValidateFunction(
-      ns + ".joint_state_topic", &node_parameters::validate_topic_name);
+      ns + ".joint_state_topic", &node_parameters::validate::topic_name);
 
   return true;
 }

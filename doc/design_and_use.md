@@ -35,7 +35,7 @@ The ParameterDescription ros message is used by ROS to advertise to other nodes 
 Constraints that are not represented by values in ParameterDescriptor.msg can be represented by validation callbacks and a string in the additional_constraints string to notify external users about the additional constraints.  An exmple of this would the a normalized quaternion constraint that only lets the user set it with a double array of size 4 that is normalized.
 To specify these the NodeParameters class should have an interface for adding these additional_constraint callbacks.
 
-## C++ NodeParameters Pattern
+## C++ ParameterSet Pattern
 ```c++
 class RobotParameters : public ParameterSet {
  public:
@@ -52,25 +52,30 @@ class RobotParameters : public ParameterSet {
 
 bool RobotParameters::declare(node_parameters::NodeParameters* node_parameters,
                               std::shared_ptr<rclcpp::Node> node) {
+  auto ns = getNamespace();
   node->declare_parameter(
-      ns_ + ".robot_description", robot_description,
-      ParameterDescriptorBuilder("robot_description")
+      ns + ".robot_description", robot_description,
+      ParameterDescriptorBuilder()
           .type(ParameterType::PARAMETER_STRING)
           .description("Parameter containing XML robotic description"));
 
   node->declare_parameter(
-      ns_ + ".joint_state_topic", joint_state_topic,
-      ParameterDescriptorBuilder("joint_state_topic")
+      ns + ".joint_state_topic", joint_state_topic,
+      ParameterDescriptorBuilder()
           .type(ParameterType::PARAMETER_STRING)
-          .description("Topic to subscribe to for joint states"));
+          .description("Topic to subscribe to for joint states")
+          .additional_constraints("Must be a valid topic name"));
+  node_parameters->registerValidateFunction(
+      ns + ".joint_state_topic", &node_parameters::validate::topic_name);
 
   return true;
 }
 
 bool RobotParameters::get(std::shared_ptr<rclcpp::Node> node) {
+  auto ns = getNamespace();
   bool success = true;
-  success &= node->get_parameter(ns_ + ".robot_description", robot_description);
-  success &= node->get_parameter(ns_ + ".joint_state_topic", joint_state_topic);
+  success &= node->get_parameter(ns + ".robot_description", robot_description);
+  success &= node->get_parameter(ns + ".joint_state_topic", joint_state_topic);
 
   return success;
 }

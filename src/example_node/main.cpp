@@ -41,14 +41,17 @@ int main(int argc, char** argv) {
   auto node = std::make_shared<rclcpp::Node>("example_node", node_options);
   auto executor = std::make_unique<rclcpp::executors::MultiThreadedExecutor>();
 
+  // namespace for the robot subsystem
+  auto robot_subsystem_namespace = "robot1";
+
   // Declare and get parameters for the node
   node_parameters::NodeParameters node_parameters(node);
-  auto robot_parameters =
-      node_parameters.declare_and_get<RobotParameters>("robot");
+  auto robot_parameters = node_parameters.declare_and_get<RobotParameters>(
+      robot_subsystem_namespace);
 
   // Create robot subsystem and register callback for dynamic parameters
   RobotSubsystem robot_subsystem(node, robot_parameters);
-  node_parameters.registerSetChangedCallback("robot", [&]() {
+  node_parameters.registerSetChangedCallback(robot_subsystem_namespace, [&]() {
     robot_subsystem.updateParameters(
         node_parameters.get<RobotParameters>(robot_parameters.getNamespace()));
   });

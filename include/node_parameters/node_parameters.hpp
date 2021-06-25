@@ -42,6 +42,7 @@
 
 namespace node_parameters {
 
+using validate::ValidateFunction;
 class NodeParameters;
 
 struct ParameterSet {
@@ -241,7 +242,8 @@ const T NodeParameters::declare_and_get(std::string ns) {
 }
 
 /**
- * @breif Splits a string on the last dot `.`.  Used to get parmaeter namespace.
+ * @breif Splits a string on the first dot `.`.  Used to get parmaeter
+ * namespace.
  *
  * @param[in]   full_name   The full parameter name including namespace
  * @return     {namespace, parameter_name} or {"", full_name} if `.` is not

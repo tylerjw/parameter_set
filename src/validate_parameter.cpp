@@ -30,8 +30,10 @@
 
 #include <node_parameters/set_parameters_result_builder.hpp>
 #include <node_parameters/validate_parameter.hpp>
+#include <stringstream>
 
 namespace node_parameters {
+namespace validate {
 
 rcl_interfaces::msg::SetParametersResult always_reject(
     const rclcpp::Parameter& /*unused*/) {
@@ -43,7 +45,7 @@ rcl_interfaces::msg::SetParametersResult always_accept(
   return SetParametersResultBuilder(true);
 }
 
-rcl_interfaces::msg::SetParametersResult validate_topic_name(
+rcl_interfaces::msg::SetParametersResult topic_name(
     const rclcpp::Parameter& parameter) {
   int validation_result;
   size_t invalid_index;
@@ -62,4 +64,28 @@ rcl_interfaces::msg::SetParametersResult validate_topic_name(
   return SetParametersResultBuilder(true);
 }
 
+rcl_interfaces::msg::SetParametersResult not_empty_string(
+    const rclcpp::Parameter& parameter) {
+  if (parameter.as_string().size() == 0) {
+    return SetParametersResultBuilder(false).reason(
+        "Must not be an empty string");
+  }
+
+  return SetParametersResultBuilder(true);
+}
+
+rcl_interfaces::msg::SetParametersResult in_string_set(
+    const rclcpp::Parameter& parameter, std::set<std::string> values) {
+  if (values.find(parameter.as_string()) == values.end()) {
+    std::stringstream ss;
+    ss << "Must one of [" for (const auto& value : values) {
+      ss << value << ", ";
+    }
+    ss << "]";
+    return SetParametersResultBuilder(false).result(ss.str());
+  }
+  return SetParametersResultBuilder(true);
+}
+
+}  // namespace validate
 }  // namespace node_parameters

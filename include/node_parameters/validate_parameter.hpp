@@ -30,8 +30,11 @@
 
 #include <functional>
 #include <rclcpp/rclcpp.hpp>
+#include <set>
+#include <string>
 
 namespace node_parameters {
+namespace validate {
 
 /**
  * @breif Function interface for parameter validation
@@ -62,7 +65,29 @@ rcl_interfaces::msg::SetParametersResult always_accept(
  *
  * @return     Success or Failure with reason
  */
-rcl_interfaces::msg::SetParametersResult validate_topic_name(
+rcl_interfaces::msg::SetParametersResult topic_name(
     const rclcpp::Parameter& parameter);
 
+/**
+ * @brief      Validate string is not empty
+ *
+ * @param[in]  parameter  The parameter
+ *
+ * @return     Success or Failure with reason
+ */
+rcl_interfaces::msg::SetParametersResult not_empty_string(
+    const rclcpp::Parameter& parameter);
+
+/**
+ * @brief      Validate that string is in set of strings
+ *
+ * @param[in]  parameter  The parameter
+ * @param[in]  values     The set of strings
+ *
+ * @return     Success or Failure with reason
+ */
+rcl_interfaces::msg::SetParametersResult in_string_set(
+    const rclcpp::Parameter& parameter, std::set<std::string> values);
+
+}  // namespace validate
 }  // namespace node_parameters

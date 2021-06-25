@@ -41,8 +41,10 @@ struct RobotParameters : public ParameterSet {
   using ParameterSet::ParameterSet;
 
   // parameters with default values
-  std::string robot_description = "invalid";
-  std::string joint_state_topic = "/joint_states";
+  std::string robot_description =
+      "robot_description";  // config for reading robot_description
+  std::string joint_state_topic =
+      "/joint_states";  // topic for subscribing to joint states
 
   /**
    * @brief      Declare the robot parameters, called by NodeParameters

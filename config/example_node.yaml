@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    robot1:
+      robot_description: "robot_description"
+      joint_state_topic: "/robot1/joint_states"
